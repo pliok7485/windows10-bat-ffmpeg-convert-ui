@@ -22,5 +22,5 @@ windows10 bat ffmpeg convert ui customize videoWidth videoHeight audioBitrate cr
 
 如果沒裝FFMPEG是不能執行的請去下載FFMPEG安裝
 
-FFMPEG安裝教學↓
+FFMPEG安裝教學
 https://the-walking-fish.com/p/install-ffmpeg-on-windows/
