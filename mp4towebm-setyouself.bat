@@ -5,17 +5,15 @@ setlocal EnableDelayedExpansion
 rem 設定輸入和輸出資料夾
 set "inputDir=%~dp0Video"
 set "outputDir=%~dp0webm"
-set "logFile=%~dp0error.log"
 
-rem 初始化日誌文件
-echo [%date% %time%] 批處理開始運行 >> "%logFile%"
+rem 記錄開始時間
+set "startTime=%time%"
 
 rem 檢查並創建輸入資料夾
 if not exist "%inputDir%" (
     echo 輸入資料夾 "%inputDir%" 不存在，正在建立...
     mkdir "%inputDir%"
     echo 已建立輸入資料夾："%inputDir%"
-    echo [%date% %time%] 已建立輸入資料夾："%inputDir%" >> "%logFile%"
     echo 請將要轉換的影片放入 Video 資料夾中
     pause
     goto end
@@ -26,7 +24,6 @@ if not exist "%outputDir%" (
     echo 輸出資料夾 "%outputDir%" 不存在，正在建立...
     mkdir "%outputDir%"
     echo 已建立輸出資料夾："%outputDir%"
-    echo [%date% %time%] 已建立輸出資料夾："%outputDir%" >> "%logFile%"
 )
 
 if not exist "%outputDir%" (
@@ -102,7 +99,6 @@ rem 搜索並處理輸入資料夾中的檔案
 for %%i in ("%inputDir%\*.*") do (
     echo.
     echo 開始處理：%%~nxi
-    echo [%date% %time%] 開始處理檔案：%%~nxi >> "%logFile%"
     
     if "!scaleOption!"=="" (
         ffmpeg -i "%%i" -c:v libvpx-vp9 -crf !crfValue! -b:v 0 -c:a libopus -b:a !audioBitrate!k "%outputDir%\%%~ni.webm"
@@ -113,17 +109,27 @@ for %%i in ("%inputDir%\*.*") do (
     if errorlevel 1 (
         echo.
         echo 轉換失敗，請檢查輸入檔案或參數！
-        echo [%date% %time%] 轉換失敗，檔案：%%~nxi >> "%logFile%"
         goto error
     ) else (
         echo.
         echo 轉換成功：%%~nxi
-        echo [%date% %time%] 成功處理檔案：%%~nxi >> "%logFile%"
     )
 )
+
+rem 計算並顯示轉換時間
+set "endTime=%time%"
+for /f "tokens=1-4 delims=:.," %%a in ("%startTime%") do set /a "start=(((%%a*60)+1%%b %% 100)*60+1%%c %% 100)*100+1%%d %% 100"
+for /f "tokens=1-4 delims=:.," %%a in ("%endTime%") do set /a "end=(((%%a*60)+1%%b %% 100)*60+1%%c %% 100)*100+1%%d %% 100"
+set /a elapsed=end-start
+set /a hh=elapsed/(60*60*100), rest=elapsed%%(60*60*100), mm=rest/(60*100), rest%%=60*100, ss=rest/100, cc=rest%%100
+if %hh% lss 10 set hh=0%hh%
+if %mm% lss 10 set mm=0%mm%
+if %ss% lss 10 set ss=0%ss%
+
 rem 顯示完成消息
 echo.
 echo 所有檔案轉換完成！
+echo 總轉換時間：%hh%時%mm%分%ss%秒
 powershell -Command "[console]::beep(1400,300)"
 msg * "轉換完成！"
 
@@ -132,7 +138,6 @@ goto end
 :error
 echo.
 echo 發生錯誤，程式將退出
-echo 請檢查 error.log 檔案以獲取詳細資訊
 pause
 exit /b 1
 
