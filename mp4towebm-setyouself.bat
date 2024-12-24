@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 
 rem 設定輸入和輸出資料夾
 set "inputDir=%~dp0Video"
@@ -12,8 +13,7 @@ rem 確保輸入和輸出資料夾存在
 if not exist "%inputDir%" (
     echo 輸入資料夾 "%inputDir%" 不存在，請確認！
     echo [%date% %time%] 輸入資料夾 "%inputDir%" 不存在，請確認！ >> "%logFile%"
-    pause
-    exit /b
+    goto error
 )
 
 if not exist "%outputDir%" (
@@ -21,115 +21,110 @@ if not exist "%outputDir%" (
 )
 
 rem 提示用戶輸入參數
-set /p videoWidth=請輸入影片的最大寬度（例如：1280,640,480，按 Enter 跳過）： 
-set /p videoHeight=請輸入影片的最大高度（例如：720,480,360，按 Enter 跳過）： 
-set /p audioBitrate=請輸入音訊的比特率（單位：k，例如：30，按 Enter 預設為 30）： 
-set /p crfValue=請輸入影片的 CRF 值（範圍：0-63，按 Enter 預設為 35）： 
+echo 請輸入影片的最大寬度（例如：1280,640,480，直接按 Enter 保持原始寬度）：
+set /p "width="
+if not "!width!"=="" (
+    set "videoWidth=!width!"
+) else (
+    set "videoWidth="
+)
+
+echo 請輸入影片的最大高度（例如：720,480,360，直接按 Enter 保持原始高度）：
+set /p "height="
+if not "!height!"=="" (
+    set "videoHeight=!height!"
+) else (
+    set "videoHeight="
+)
+
+set /p audioBitrate=請輸入音訊的比特率（單位：k，例如：30，按 Enter 預設為 30）：
+set /p crfValue=請輸入影片的 CRF 值（範圍：0-63，按 Enter 預設為 35）：
 
 rem 設定預設值
-if not defined audioBitrate set "audioBitrate=30"
-if not defined crfValue set "crfValue=35"
+if "!audioBitrate!"=="" set "audioBitrate=30"
+if "!crfValue!"=="" set "crfValue=35"
 
-rem 驗證輸入值
-if defined videoWidth if defined videoHeight (
-    if not "%videoWidth%"=="%videoWidth:~-4%" (
-        echo 影片寬度應為數值！
-        echo [%date% %time%] 影片寬度應為數值！ >> "%logFile%"
-        pause
-        exit /b
-    )
-    if not "%videoHeight%"=="%videoHeight:~-4%" (
-        echo 影片高度應為數值！
-        echo [%date% %time%] 影片高度應為數值！ >> "%logFile%"
-        pause
-        exit /b
+rem 驗證數值輸入
+if not "!videoWidth!"=="" (
+    for /f "delims=0123456789" %%i in ("!videoWidth!") do (
+        echo 影片寬度必須是純數字！
+        goto error
     )
 )
-if not "%audioBitrate%"=="%audioBitrate:~-4%" (
-    echo 音訊比特率應為數值！
-    echo [%date% %time%] 音訊比特率應為數值！ >> "%logFile%"
-    pause
-    exit /b
-)
-if %crfValue% lss 0 if %crfValue% gtr 63 (
-    echo CRF 值應在範圍 0-63 之間！
-    echo [%date% %time%] CRF 值應在範圍 0-63 之間！ >> "%logFile%"
-    pause
-    exit /b
+
+if not "!videoHeight!"=="" (
+    for /f "delims=0123456789" %%i in ("!videoHeight!") do (
+        echo 影片高度必須是純數字！
+        goto error
+    )
 )
 
 rem 顯示設定確認
-echo 影片寬度：%videoWidth%
-echo 影片高度：%videoHeight%
-echo 音訊比特率：%audioBitrate%k
-echo CRF 值：%crfValue%
+echo.
+echo 當前設定：
+echo -------------------
+if "!videoWidth!"=="" (
+    echo 影片寬度：保持原始寬度
+) else (
+    echo 影片寬度：!videoWidth!
+)
+if "!videoHeight!"=="" (
+    echo 影片高度：保持原始高度
+) else (
+    echo 影片高度：!videoHeight!
+)
+echo 音訊比特率：!audioBitrate!k
+echo CRF 值：!crfValue!
+echo -------------------
+echo.
 pause
 
-rem 構建縮放參數
+rem 構建 ffmpeg 命令
 set "scaleOption="
-if defined videoWidth if defined videoHeight (
-    set "scaleOption=-vf scale='if(gt(iw/ih,%videoWidth%/%videoHeight%),%videoWidth%,-1)':'if(gt(iw/ih,%videoWidth%/%videoHeight%),-1,%videoHeight%)'"
-) else (
-    rem 若沒有寬高，則不加縮放參數
-    set "scaleOption="
+if not "!videoWidth!"=="" if not "!videoHeight!"=="" (
+    set "scaleOption=-vf scale=!videoWidth!:!videoHeight!"
 )
-
-rem 記錄起始時間
-set startTime=%time%
 
 rem 搜索並處理輸入資料夾中的檔案
 for %%i in ("%inputDir%\*.*") do (
-    echo 處理檔案：%%~nxi
-    ffmpeg -i "%%i" -c:v libvpx-vp9 -crf %crfValue% -b:v 0 %scaleOption% -c:a libopus -b:a %audioBitrate%k "%outputDir%\%%~ni.webm" 2>> "%logFile%"
+    echo.
+    echo 開始處理：%%~nxi
+    echo [%date% %time%] 開始處理檔案：%%~nxi >> "%logFile%"
+    
+    if "!scaleOption!"=="" (
+        ffmpeg -i "%%i" -c:v libvpx-vp9 -crf !crfValue! -b:v 0 -c:a libopus -b:a !audioBitrate!k "%outputDir%\%%~ni.webm"
+    ) else (
+        ffmpeg -i "%%i" -c:v libvpx-vp9 -crf !crfValue! -b:v 0 !scaleOption! -c:a libopus -b:a !audioBitrate!k "%outputDir%\%%~ni.webm"
+    )
+    
     if errorlevel 1 (
+        echo.
         echo 轉換失敗，請檢查輸入檔案或參數！
-        echo [%date% %time%] 轉換失敗，檔案：%%~nxi，請檢查輸入檔案或參數！ >> "%logFile%"
-        pause
-        exit /b
+        echo [%date% %time%] 轉換失敗，檔案：%%~nxi >> "%logFile%"
+        goto error
+    ) else (
+        echo.
+        echo 轉換成功：%%~nxi
+        echo [%date% %time%] 成功處理檔案：%%~nxi >> "%logFile%"
     )
 )
-
-rem 記錄結束時間
-set endTime=%time%
-
-rem 計算耗時
-call :calculateTime "%startTime%" "%endTime%"
-
-echo 完成！
+rem 顯示完成消息
+echo.
+echo 所有檔案轉換完成！
 powershell -Command "[console]::beep(1400,300)"
 msg * "轉換完成！"
 
-rem 讓視窗保持開啟
+goto end
+
+:error
+echo.
+echo 發生錯誤，程式將退出
+echo 請檢查 error.log 檔案以獲取詳細資訊
 pause
-exit /b
+exit /b 1
 
-:calculateTime
-setlocal
-set "start=%~1"
-set "end=%~2"
-
-rem 解析起始時間
-for /f "tokens=1-4 delims=:., " %%a in ("%start%") do (
-    set /a "startH=%%a, startM=%%b, startS=%%c, startMS=%%d"
-)
-
-rem 解析結束時間
-for /f "tokens=1-4 delims=:., " %%a in ("%end%") do (
-    set /a "endH=%%a, endM=%%b, endS=%%c, endMS=%%d"
-)
-
-rem 將時間轉為總毫秒數
-set /a "startTotalMS=(startH*3600 + startM*60 + startS)*1000 + startMS"
-set /a "endTotalMS=(endH*3600 + endM*60 + endS)*1000 + endMS"
-
-rem 處理跨午夜的情況
-if %endTotalMS% lss %startTotalMS% set /a "endTotalMS+=86400000"
-
-rem 計算耗時總毫秒數
-set /a "elapsedMS=endTotalMS - startTotalMS"
-set /a "elapsedS=elapsedMS / 1000, elapsedMS=elapsedMS %% 1000"
-set /a "elapsedM=elapsedS / 60, elapsedS=elapsedS %% 60"
-
-rem 輸出格式化的結果
-echo 總耗時：%elapsedM% 分 %elapsedS% 秒
-exit /b
+:end
+echo.
+echo 按任意鍵退出程式...
+pause > nul
+exit /b 0
