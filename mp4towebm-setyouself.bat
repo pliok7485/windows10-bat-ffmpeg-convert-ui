@@ -1,12 +1,17 @@
 @echo off
 
-rem ³]©w¿é¤J©M¿é¥X¸ê®Æ§¨
+rem è¨­å®šè¼¸å…¥å’Œè¼¸å‡ºè³‡æ–™å¤¾
 set "inputDir=%~dp0Video"
 set "outputDir=%~dp0webm"
+set "logFile=%~dp0error.log"
 
-rem ½T«O¿é¤J©M¿é¥X¸ê®Æ§¨¦s¦b
+rem åˆå§‹åŒ–æ—¥èªŒæ–‡ä»¶
+echo [%date% %time%] æ‰¹è™•ç†é–‹å§‹é‹è¡Œ >> "%logFile%"
+
+rem ç¢ºä¿è¼¸å…¥å’Œè¼¸å‡ºè³‡æ–™å¤¾å­˜åœ¨
 if not exist "%inputDir%" (
-    echo ¿é¤J¸ê®Æ§¨ "%inputDir%" ¤£¦s¦b¡A½Ğ½T»{¡I
+    echo è¼¸å…¥è³‡æ–™å¤¾ "%inputDir%" ä¸å­˜åœ¨ï¼Œè«‹ç¢ºèªï¼
+    echo [%date% %time%] è¼¸å…¥è³‡æ–™å¤¾ "%inputDir%" ä¸å­˜åœ¨ï¼Œè«‹ç¢ºèªï¼ >> "%logFile%"
     pause
     exit /b
 )
@@ -15,57 +20,86 @@ if not exist "%outputDir%" (
     mkdir "%outputDir%"
 )
 
-rem ´£¥Ü¥Î¤á¿é¤J°Ñ¼Æ
-set /p videoWidth=½Ğ¿é¤J¼v¤ùªº³Ì¤j¼e«×¡]¨Ò¦p¡G1280,640,480¡A«ö Enter ¸õ¹L¡^¡G 
-set /p videoHeight=½Ğ¿é¤J¼v¤ùªº³Ì¤j°ª«×¡]¨Ò¦p¡G720,480,360¡A«ö Enter ¸õ¹L¡^¡G 
-set /p audioBitrate=½Ğ¿é¤J­µ°Tªº¤ñ¯S²v¡]³æ¦ì¡Gk¡A¨Ò¦p¡G30¡A«ö Enter ¹w³]¬° 30¡^¡G 
-set /p crfValue=½Ğ¿é¤J¼v¤ùªº CRF ­È¡]½d³ò¡G0-63¡A«ö Enter ¹w³]¬° 35¡^¡G 
+rem æç¤ºç”¨æˆ¶è¼¸å…¥åƒæ•¸
+set /p videoWidth=è«‹è¼¸å…¥å½±ç‰‡çš„æœ€å¤§å¯¬åº¦ï¼ˆä¾‹å¦‚ï¼š1280,640,480ï¼ŒæŒ‰ Enter è·³éï¼‰ï¼š 
+set /p videoHeight=è«‹è¼¸å…¥å½±ç‰‡çš„æœ€å¤§é«˜åº¦ï¼ˆä¾‹å¦‚ï¼š720,480,360ï¼ŒæŒ‰ Enter è·³éï¼‰ï¼š 
+set /p audioBitrate=è«‹è¼¸å…¥éŸ³è¨Šçš„æ¯”ç‰¹ç‡ï¼ˆå–®ä½ï¼škï¼Œä¾‹å¦‚ï¼š30ï¼ŒæŒ‰ Enter é è¨­ç‚º 30ï¼‰ï¼š 
+set /p crfValue=è«‹è¼¸å…¥å½±ç‰‡çš„ CRF å€¼ï¼ˆç¯„åœï¼š0-63ï¼ŒæŒ‰ Enter é è¨­ç‚º 35ï¼‰ï¼š 
 
-rem ³]©w¹w³]­È
+rem è¨­å®šé è¨­å€¼
 if not defined audioBitrate set "audioBitrate=30"
 if not defined crfValue set "crfValue=35"
 
-rem Åã¥Ü³]©w½T»{
-echo ¼v¤ù¼e«×¡G%videoWidth%
-echo ¼v¤ù°ª«×¡G%videoHeight%
-echo ­µ°T¤ñ¯S²v¡G%audioBitrate%k
-echo CRF ­È¡G%crfValue%
+rem é©—è­‰è¼¸å…¥å€¼
+if defined videoWidth if defined videoHeight (
+    if not "%videoWidth%"=="%videoWidth:~-4%" (
+        echo å½±ç‰‡å¯¬åº¦æ‡‰ç‚ºæ•¸å€¼ï¼
+        echo [%date% %time%] å½±ç‰‡å¯¬åº¦æ‡‰ç‚ºæ•¸å€¼ï¼ >> "%logFile%"
+        pause
+        exit /b
+    )
+    if not "%videoHeight%"=="%videoHeight:~-4%" (
+        echo å½±ç‰‡é«˜åº¦æ‡‰ç‚ºæ•¸å€¼ï¼
+        echo [%date% %time%] å½±ç‰‡é«˜åº¦æ‡‰ç‚ºæ•¸å€¼ï¼ >> "%logFile%"
+        pause
+        exit /b
+    )
+)
+if not "%audioBitrate%"=="%audioBitrate:~-4%" (
+    echo éŸ³è¨Šæ¯”ç‰¹ç‡æ‡‰ç‚ºæ•¸å€¼ï¼
+    echo [%date% %time%] éŸ³è¨Šæ¯”ç‰¹ç‡æ‡‰ç‚ºæ•¸å€¼ï¼ >> "%logFile%"
+    pause
+    exit /b
+)
+if %crfValue% lss 0 if %crfValue% gtr 63 (
+    echo CRF å€¼æ‡‰åœ¨ç¯„åœ 0-63 ä¹‹é–“ï¼
+    echo [%date% %time%] CRF å€¼æ‡‰åœ¨ç¯„åœ 0-63 ä¹‹é–“ï¼ >> "%logFile%"
+    pause
+    exit /b
+)
+
+rem é¡¯ç¤ºè¨­å®šç¢ºèª
+echo å½±ç‰‡å¯¬åº¦ï¼š%videoWidth%
+echo å½±ç‰‡é«˜åº¦ï¼š%videoHeight%
+echo éŸ³è¨Šæ¯”ç‰¹ç‡ï¼š%audioBitrate%k
+echo CRF å€¼ï¼š%crfValue%
 pause
 
-rem ºc«ØÁY©ñ°Ñ¼Æ
+rem æ§‹å»ºç¸®æ”¾åƒæ•¸
 set "scaleOption="
 if defined videoWidth if defined videoHeight (
     set "scaleOption=-vf scale='if(gt(iw/ih,%videoWidth%/%videoHeight%),%videoWidth%,-1)':'if(gt(iw/ih,%videoWidth%/%videoHeight%),-1,%videoHeight%)'"
 ) else (
-    rem ­Y¨S¦³¼e°ª¡A«h¤£¥[ÁY©ñ°Ñ¼Æ
+    rem è‹¥æ²’æœ‰å¯¬é«˜ï¼Œå‰‡ä¸åŠ ç¸®æ”¾åƒæ•¸
     set "scaleOption="
 )
 
-rem °O¿ı°_©l®É¶¡
+rem è¨˜éŒ„èµ·å§‹æ™‚é–“
 set startTime=%time%
 
-rem ·j¯Á¨Ã³B²z¿é¤J¸ê®Æ§¨¤¤ªºÀÉ®×
+rem æœç´¢ä¸¦è™•ç†è¼¸å…¥è³‡æ–™å¤¾ä¸­çš„æª”æ¡ˆ
 for %%i in ("%inputDir%\*.*") do (
-    echo ³B²zÀÉ®×¡G%%~nxi
-    ffmpeg -i "%%i" -c:v libvpx-vp9 -crf %crfValue% -b:v 0 %scaleOption% -c:a libopus -b:a %audioBitrate%k "%outputDir%\%%~ni.webm"
+    echo è™•ç†æª”æ¡ˆï¼š%%~nxi
+    ffmpeg -i "%%i" -c:v libvpx-vp9 -crf %crfValue% -b:v 0 %scaleOption% -c:a libopus -b:a %audioBitrate%k "%outputDir%\%%~ni.webm" 2>> "%logFile%"
     if errorlevel 1 (
-        echo Âà´«¥¢±Ñ¡A½ĞÀË¬d¿é¤JÀÉ®×©Î°Ñ¼Æ¡I
+        echo è½‰æ›å¤±æ•—ï¼Œè«‹æª¢æŸ¥è¼¸å…¥æª”æ¡ˆæˆ–åƒæ•¸ï¼
+        echo [%date% %time%] è½‰æ›å¤±æ•—ï¼Œæª”æ¡ˆï¼š%%~nxiï¼Œè«‹æª¢æŸ¥è¼¸å…¥æª”æ¡ˆæˆ–åƒæ•¸ï¼ >> "%logFile%"
         pause
         exit /b
     )
 )
 
-rem °O¿ıµ²§ô®É¶¡
+rem è¨˜éŒ„çµæŸæ™‚é–“
 set endTime=%time%
 
-rem ­pºâ¯Ó®É
+rem è¨ˆç®—è€—æ™‚
 call :calculateTime "%startTime%" "%endTime%"
 
-echo §¹¦¨¡I
+echo å®Œæˆï¼
 powershell -Command "[console]::beep(1400,300)"
-msg * "Âà´«§¹¦¨¡I"
+msg * "è½‰æ›å®Œæˆï¼"
 
-rem Åıµøµ¡«O«ù¶}±Ò
+rem è®“è¦–çª—ä¿æŒé–‹å•Ÿ
 pause
 exit /b
 
@@ -74,28 +108,28 @@ setlocal
 set "start=%~1"
 set "end=%~2"
 
-rem ¸ÑªR°_©l®É¶¡
+rem è§£æèµ·å§‹æ™‚é–“
 for /f "tokens=1-4 delims=:., " %%a in ("%start%") do (
     set /a "startH=%%a, startM=%%b, startS=%%c, startMS=%%d"
 )
 
-rem ¸ÑªRµ²§ô®É¶¡
+rem è§£æçµæŸæ™‚é–“
 for /f "tokens=1-4 delims=:., " %%a in ("%end%") do (
     set /a "endH=%%a, endM=%%b, endS=%%c, endMS=%%d"
 )
 
-rem ±N®É¶¡Âà¬°Á`²@¬í¼Æ
+rem å°‡æ™‚é–“è½‰ç‚ºç¸½æ¯«ç§’æ•¸
 set /a "startTotalMS=(startH*3600 + startM*60 + startS)*1000 + startMS"
 set /a "endTotalMS=(endH*3600 + endM*60 + endS)*1000 + endMS"
 
-rem ³B²z¸ó¤È©]ªº±¡ªp
+rem è™•ç†è·¨åˆå¤œçš„æƒ…æ³
 if %endTotalMS% lss %startTotalMS% set /a "endTotalMS+=86400000"
 
-rem ­pºâ¯Ó®ÉÁ`²@¬í¼Æ
+rem è¨ˆç®—è€—æ™‚ç¸½æ¯«ç§’æ•¸
 set /a "elapsedMS=endTotalMS - startTotalMS"
 set /a "elapsedS=elapsedMS / 1000, elapsedMS=elapsedMS %% 1000"
 set /a "elapsedM=elapsedS / 60, elapsedS=elapsedS %% 60"
 
-rem ¿é¥X®æ¦¡¤Æªºµ²ªG
-echo Á`¯Ó®É¡G%elapsedM% ¤À %elapsedS% ¬í
+rem è¼¸å‡ºæ ¼å¼åŒ–çš„çµæœ
+echo ç¸½è€—æ™‚ï¼š%elapsedM% åˆ† %elapsedS% ç§’
 exit /b
