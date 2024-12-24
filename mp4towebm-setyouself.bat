@@ -10,11 +10,23 @@ set "logFile=%~dp0error.log"
 rem 初始化日誌文件
 echo [%date% %time%] 批處理開始運行 >> "%logFile%"
 
-rem 確保輸入和輸出資料夾存在
+rem 檢查並創建輸入資料夾
 if not exist "%inputDir%" (
-    echo 輸入資料夾 "%inputDir%" 不存在，請確認！
-    echo [%date% %time%] 輸入資料夾 "%inputDir%" 不存在，請確認！ >> "%logFile%"
-    goto error
+    echo 輸入資料夾 "%inputDir%" 不存在，正在建立...
+    mkdir "%inputDir%"
+    echo 已建立輸入資料夾："%inputDir%"
+    echo [%date% %time%] 已建立輸入資料夾："%inputDir%" >> "%logFile%"
+    echo 請將要轉換的影片放入 Video 資料夾中
+    pause
+    goto end
+)
+
+rem 檢查並創建輸出資料夾
+if not exist "%outputDir%" (
+    echo 輸出資料夾 "%outputDir%" 不存在，正在建立...
+    mkdir "%outputDir%"
+    echo 已建立輸出資料夾："%outputDir%"
+    echo [%date% %time%] 已建立輸出資料夾："%outputDir%" >> "%logFile%"
 )
 
 if not exist "%outputDir%" (
