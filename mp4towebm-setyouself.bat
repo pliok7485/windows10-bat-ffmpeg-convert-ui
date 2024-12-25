@@ -31,7 +31,7 @@ if not exist "%outputDir%" (
 )
 
 rem 提示用戶輸入參數
-echo 請輸入影片的最大寬度（例如：1280,640,480，直接按 Enter 保持原始寬度）：
+echo 請輸入影片的最大寬度（例如：720,480,360，直接按 Enter 保持原始寬度）：
 set /p "width="
 if not "!width!"=="" (
     set "videoWidth=!width!"
@@ -39,7 +39,7 @@ if not "!width!"=="" (
     set "videoWidth="
 )
 
-echo 請輸入影片的最大高度（例如：720,480,360，直接按 Enter 保持原始高度）：
+echo 請輸入影片的最大高度（例如：1280,640,480，直接按 Enter 保持原始高度）：
 set /p "height="
 if not "!height!"=="" (
     set "videoHeight=!height!"
